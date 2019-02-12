@@ -5,11 +5,12 @@ You can use:
 - Anaconda & python `3.6`
 - Docker.
 
-### Using Anaconda:
+### Installing Anaconda
 [Install the Anaconda distro](https://www.anaconda.com/distribution/)
 - Make sure to select your appropriate OS
 - Also, highly recommend installing the python `3.7` version - it'll allow you to create environments in python `2.x` if you want. But if you install Anaconda/python2.7, you won't be able to create `3.x` python envs.
 
+### Using Anaconda & python `2.7`:
 #### Caveat: _using anaconda to manage everything, easily, forces python 2.x due to a build conflict in the cvxpy lib. If you want to use python 3.x, please jump down to the next option._
 
 Run the following command to create your conda environment
@@ -28,7 +29,7 @@ conda activate venv_vader_solar_disagg
 jupyter notebook
 ```
 
-### Using Anaconda (and python 3.x) but manually installing dependencies to resolve conflicts
+### Using Anaconda & python `3.6` (need to manually install dependencies to resolve conflicts):
 
 Run the following commands to get setup:
 ```bash
@@ -48,6 +49,9 @@ pip install cvxpy
 # Lastly, run the project
 jupyter notebook
 ```
+
+### Using Docker:
+WIP
 
 ### Once the project is running
 Your browser should automatically launch a page pointed at `localhost:8888` with Jupyter running. If that's not the case, please open your favorite browser (_I hope it's not IE_) and navigate to `localhost:8888`.
