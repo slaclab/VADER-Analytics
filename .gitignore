@@ -298,3 +298,5 @@ override.tf.json
 # !example_override.tf
 
 # End of https://www.gitignore.io/api/flask,matlab,python,django,terraform,jupyternotebook
+
+.vscode/
