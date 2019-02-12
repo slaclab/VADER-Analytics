@@ -1,8 +1,8 @@
 ## Getting up and running
 You have a couple of options to get going with this project. Choose the option you are most comfortable with. 
 You can use: 
-- Anaconda (rec/easiest)
-- Virtualenv
+- Anaconda & python `2.7` (rec/easiest)
+- Anaconda & python `3.6`
 - Docker.
 
 ### Using Anaconda:
@@ -14,21 +14,17 @@ You can use:
 
 Run the following command to create your conda environment
 ```bash
+# create the env
 conda env create -f environment.yml
-```
-You should now have an environment named `venv_vader_solar_disagg`.
-To check that this is the case, run:
-```bash
+
+# You should now have an environment named venv_vader_solar_disagg
+# To check that this is the case, run
 conda info --envs
-```
 
-Activate the environment:
-```bash
+# Activate the environment
 conda activate venv_vader_solar_disagg
-```
 
-Run solar disagg:
-```bash
+# Lastly, run the project
 jupyter notebook
 ```
 
@@ -48,10 +44,8 @@ conda install numpy
 conda install pandas
 conda install scikit-learn
 pip install cvxpy
-```
 
-Lastly, run the project:
-```bash
+# Lastly, run the project
 jupyter notebook
 ```
 
