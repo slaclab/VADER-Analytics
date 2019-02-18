@@ -51,7 +51,14 @@ jupyter notebook
 ```
 
 ### Using Docker:
-WIP
+[Install Docker](https://docs.docker.com/install/)
+```bash
+# run the following commands
+docker build --tag=vader_solar_disagg .
+docker run -it -p 8888:8888 vader_solar_disagg
+# docker will output a URL with a token that you should just 
+# copy and paste into your browser to launch the project
+```
 
 ### Once the project is running
 Your browser should automatically launch a page pointed at `localhost:8888` with Jupyter running. If that's not the case, please open your favorite browser (_I hope it's not IE_) and navigate to `localhost:8888`.
