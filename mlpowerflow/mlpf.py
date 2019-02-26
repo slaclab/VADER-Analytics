@@ -157,9 +157,9 @@ class ForwardMLPF:
             num_train = int(train_percent*np.shape(self.uw)[0])
             num_test = np.shape(self.uw)[0] - num_train
             X_train = self.uw[np.arange(0, num_train), :]
-            X_test = self.uw[np.arange(num_train, num_train+num_test), :]
+            X_test = self.uw[np.arange(num_train, num_train + num_test), :]
             y_train = self.pq[np.arange(0, num_train), :]
-            y_test = self.pq[np.arange(num_train, num_train+num_test), :]
+            y_test = self.pq[np.arange(num_train, num_train + num_test), :]
         else:
             print('Failed to split data properly. One of rand_percent and time_series must be True.')
             return
@@ -286,7 +286,7 @@ class ForwardMLPF:
                                   degree=2, gamma=1.0, coef0=1.0)
             scaler_y = StandardScaler()
             scaler_y.fit(self.y_train[:, k].reshape((self.num_train, 1)))
-            y_output[k] = scaler_y.inverse_transform((np.mat(self.coeffs[k, :])*np.mat(K)+self.b[k, 0]).reshape((1, 1)))
+            y_output[k] = scaler_y.inverse_transform((np.mat(self.coeffs[k, :])*np.mat(K) + self.b[k, 0]).reshape((1, 1)))
 
         return y_output
 
@@ -316,7 +316,7 @@ class ForwardMLPF:
         for i in range(self.num_test):
 
             test_y_values[i, :] = self.apply_svr(self.X_test[i, :])
-            test_error_values[i] = np.linalg.norm(test_y_values[i, :]-self.y_test[i, :], 2)/np.power(self.num_bus, 0.5)
+            test_error_values[i] = np.linalg.norm(test_y_values[i, :] - self.y_test[i, :], 2) / np.power(self.num_bus, 0.5)
 
         total_rmse = np.sqrt(np.mean(np.power(test_y_values - self.y_test, 2)))
         
