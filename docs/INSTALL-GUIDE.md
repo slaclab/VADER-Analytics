@@ -1,6 +1,6 @@
 ## Getting up and running
-You have a couple of options to get going with this project. Choose the option you are most comfortable with. 
-You can use: 
+You have a couple of options to get going with this project. Choose the option you are most comfortable with.
+You can use:
 - Anaconda & python `2.7` (rec/easiest)
 - Anaconda & python `3.6`
 - Docker.
@@ -39,11 +39,12 @@ conda create --name venv_vader_solar_disagg_py3 python=3.6
 # activate the env
 conda activate venv_vader_solar_disagg_py3
 
-# install the dependencies 
+# install the dependencies
 conda install jupyter
 conda install numpy
 conda install pandas
 conda install scikit-learn
+conda install matplotlib
 pip install cvxpy
 
 # Lastly, run the project
@@ -56,7 +57,7 @@ jupyter notebook
 # run the following commands
 docker build --tag=vader_solar_disagg .
 docker run -it -p 8888:8888 vader_solar_disagg
-# docker will output a URL with a token that you should just 
+# docker will output a URL with a token that you should just
 # copy and paste into your browser to launch the project
 ```
 

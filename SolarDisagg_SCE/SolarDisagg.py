@@ -1,8 +1,10 @@
-import CSSS
+import csss as CSSS
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import LinearRegression as LR
-##### Davide Modifications:
+import copy
+from Custom_Functions.error_functions import rmse_pos
+##### Davide Modifications: 
 #    I enriched the calcPerformanceMetrics routine with new performance metrics
 #    I added the possibility to feed which IDS do not have solar and contrain their generation to 0
 #    I added a function Mape_mod
@@ -54,7 +56,9 @@ class SolarDisagg_IndvHome(CSSS.CSSS):
             ## Add constraints that solar generation cannot exceed zero or net load.
             self.addConstraint( self.models[source_name]['source'] <= np.array(self.netloads[source_name]) )
             self.addConstraint( self.models[source_name]['source'] <= 0 )
-
+            self.addConstraint( self.models[source_name]['theta'] >= 0 ) ####################
+            
+        
 ##################
         if self.nosolar_ids is not None:
             for source_name in self.nosolar_ids:
@@ -105,7 +109,7 @@ class SolarDisagg_IndvHome(CSSS.CSSS):
         df['mae_max']= np.zeros(df.shape[0]) * np.nan
         df['cv_max'] = np.zeros(df.shape[0]) * np.nan
         df['max_sol_pred'] = np.zeros(df.shape[0]) * np.nan
-
+        
         df['cv_pos']     = np.zeros(df.shape[0]) * np.nan
         df['rmse_pos']   = np.zeros(df.shape[0]) * np.nan
         df['mae_pos']    = np.zeros(df.shape[0]) * np.nan
@@ -128,18 +132,19 @@ class SolarDisagg_IndvHome(CSSS.CSSS):
             df.loc[name,'mae']  = np.mean(np.abs((truth-est)))
             df.loc[name,'MAPE'] = MAPE_mod(est,truth,thrs=0.001)
             df.loc[name,'max_sol_pred'] = np.max(np.abs(est))
-
+            df.loc[name,'rmse_pos'] = rmse_pos(est,truth)
+        
             if not (df.loc[name,'mean'] == 0):
                 df.loc[name,'cv']   = df.loc[name,'rmse'] / np.mean(truth)
                 df.loc[name,'pmae'] = df.loc[name,'mae']  / np.mean(truth)
                 df.loc[name,'mae_max']  =  df.loc[name,'mae']/ np.max(np.abs(truth))
                 df.loc[name,'cv_max'] = df.loc[name,'rmse'] / np.max(np.abs(truth))
-
+                
                 ## Find metrics for  positive indices only
                 posinds = np.abs(truth) > (0.05 * np.abs(np.mean(truth)))
                 truth = truth[posinds]
                 est   = est[posinds]
-                df.loc[name,'rmse_pos'] = np.sqrt(np.mean((truth-est)**2))
+#                df.loc[name,'rmse_pos'] = np.sqrt(np.mean((truth-est)**2))
                 df.loc[name,'mae_pos']  = np.mean(np.abs((truth-est)))
                 df.loc[name,'cv_pos']   = df.loc[name,'rmse_pos'] / np.mean(truth)
                 df.loc[name,'pmae_pos'] = df.loc[name,'mae_pos']  / np.mean(truth)
@@ -148,8 +153,8 @@ class SolarDisagg_IndvHome(CSSS.CSSS):
                 df.loc[name,'MAPE_pos'] = MAPE_mod(est,truth)
                 df.loc[name,'mae_pos_max']  = df.loc[name,'mae_pos'] / np.max(np.abs(truth))
                 df.loc[name,'cv_pos_max']   = df.loc[name,'rmse_pos'] / np.max(np.abs(truth))
-
-
+                
+                
         self.performanceMetrics = df
 
         return(None)
@@ -472,14 +477,14 @@ class SolarDisagg_IndvHome_Realtime(CSSS.CSSS):
         df['pmae']   = np.zeros(df.shape[0]) * np.nan
         df['mbe']    = np.zeros(df.shape[0]) * np.nan
         df['mean']   = np.zeros(df.shape[0]) * np.nan
-
+        
         df['cv_pos']     = np.zeros(df.shape[0]) * np.nan
         df['rmse_pos']   = np.zeros(df.shape[0]) * np.nan
         df['mae_pos']    = np.zeros(df.shape[0]) * np.nan
         df['pmae_pos']   = np.zeros(df.shape[0]) * np.nan
         df['mbe_pos']    = np.zeros(df.shape[0]) * np.nan
         df['mean_pos']   = np.zeros(df.shape[0]) * np.nan
-
+        
         df               = df.set_index('models')
 
         for name in self.trueValues.keys():
@@ -539,7 +544,7 @@ def createTempInput(temp, size, minTemp=None, maxTemp=None, intercept=False):
     return minTemp, maxTemp, result
 
 
-def createSolarDisaggIndvInputs(data, home_ids, solar_proxy_ids):
+def createSolarDisaggIndvInputs(data, home_ids, solar_proxy_ids, time_index = None):
     """
     Helper function to create inputs to SolarDisagg_IndvHome from a time-series csv file. This function works with the
     data file generation script, tutorial_data_setup.py.
@@ -547,16 +552,20 @@ def createSolarDisaggIndvInputs(data, home_ids, solar_proxy_ids):
     :param data:                A path to the csv file (probably the one created by tutorial_data_setpu.py)
     :param solar_proxy_ids:     The site ID numbers associated with the solar proxy signals
     :param includes_agg_col:    If true, the csv contains an aggregate net load column
+    :time_index:                List with start and end or index type
     :return:                    A dictionary mapping to the constructor for SolarDisagg_IndvHome
     """
     try:
         df = pd.read_csv(data, index_col=0, header=[0, 1], parse_dates=[0])
     except ValueError:
         if isinstance(data, pd.DataFrame):
-            df = data
+            df = copy.deepcopy(data)
         else:
             print('Please input a path to a csv file or a valid Pandas DataFrame')
             return
+
+    if time_index:
+        df = df[(df.index >= time_index[0]) & (df.index <= time_index[1])]
 
     if isinstance(solar_proxy_ids, str):
         solar_proxy_ids = np.load(solar_proxy_ids)
@@ -576,10 +585,14 @@ def createSolarDisaggIndvInputs(data, home_ids, solar_proxy_ids):
     data_out = {
         'netloads':         netloads,
         'solarregressors':  solarproxy,
-        'loadregressors':   np.hstack((hod, temp_regress)),
+        'loadregressors':   np.hstack((np.ones((len(hod),1)),hod, temp_regress)),
         'tuningregressors': hod,
         'names':            home_ids
     }
+    
+#   changes the names of the models to strings becuase the other functions do not like numbers as names
+#    if not isinstance(home_ids[0], str):
+    data_out['names'] = list(map(str,home_ids))
 
     return data_out
 
@@ -603,13 +616,16 @@ def convolve_cyc(x, filt, left = True):
 
 def MAPE_mod(predicted,actual,thrs = None):
     # 0<thrs<1 : thrs consider there is no error if the absolute difference predicted Vs actual <= than thrs*abs(max(actual))
-
+    
     if thrs:
         posinds = np.abs(actual-predicted) >= thrs*np.max(np.abs(actual))
-        predicted_m = predicted[posinds]
+        predicted_m = predicted[posinds] 
         actual_m = actual[posinds]
         error = np.sum(np.abs(actual_m-predicted_m)/np.abs(actual_m))/len(actual)
     else:
         error = np.mean(np.abs(actual-predicted)/np.abs(actual))
-
+    
     return error
+
+
+

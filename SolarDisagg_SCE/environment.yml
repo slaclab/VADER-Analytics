@@ -1,0 +1,11 @@
+name: venv_vader_solar_disagg
+channels:
+  - cvxgrp
+  - defaults
+dependencies:
+  - python=2.7
+  - jupyter
+  - numpy
+  - pandas
+  - scikit-learn
+  - cvxpy
