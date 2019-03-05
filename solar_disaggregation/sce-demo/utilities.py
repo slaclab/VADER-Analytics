@@ -50,6 +50,8 @@ class Setup_load(object):
         with open(initial_path+'keys/pecanstkey.txt', 'r') as f:
             key = f.read().strip()
             f.close()
+        
+        # Mayank: 
         engine = sq.create_engine("postgresql+psycopg2://{}@dataport.pecanstreet.org:5434/postgres".format(key))
         
         if not path.exists(fp):
