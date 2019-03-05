@@ -14,7 +14,7 @@ import sqlalchemy as sq
 from copy import deepcopy
 
 # Load Regressor Libraries
-from csss.SolarDisagg import createTempInput
+from SolarDisagg import createTempInput
 from sklearn.linear_model import LinearRegression
 
 

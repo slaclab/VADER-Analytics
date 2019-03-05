@@ -1,4 +1,7 @@
 
+# Custom files to ignore
+pecanstkey.txt
+
 # Created by https://www.gitignore.io/api/flask,matlab,python,django,terraform,jupyternotebook
 # Edit at https://www.gitignore.io/?templates=flask,matlab,python,django,terraform,jupyternotebook
 

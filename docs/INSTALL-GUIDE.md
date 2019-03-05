@@ -45,6 +45,9 @@ conda install numpy
 conda install pandas
 conda install scikit-learn
 conda install matplotlib
+conda install sqlalchemy
+conda install seaborn
+conda install psycopg2
 pip install cvxpy
 
 # Lastly, run the project
