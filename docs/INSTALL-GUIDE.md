@@ -49,7 +49,8 @@ conda install sqlalchemy
 conda install seaborn
 conda install psycopg2
 pip install cvxpy==0.4.10
-
+# if pip fails
+conda install -c cvxgrp cvxpy
 # Lastly, run the project
 jupyter notebook
 ```
