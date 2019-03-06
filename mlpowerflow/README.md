@@ -32,9 +32,8 @@ forward ML power flow model can not be validated. However, we can still use this
 estimation; the inverse mapping model also discussed in the paper. 
 
 The voltage estimation problem is laid out as follows: 
-- Inputs: Real and reactive power injections measured at the leaf nodes (customer level data) and 
-substation level aggregation point
-- Outputs: Voltage magnitude at the substation level.
+- Inputs: Real and reactive power injections measured at the leaf nodes (customer level data) and an aggregation point
+- Outputs: Voltage magnitude at the aggregation point.
 
 The Voltage_Estimation_Use_Case.ipynb example and InverseMLPF class in this package are built to 
 address this case, as well as voltage estimation with any other data set - the same model and tools
