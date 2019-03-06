@@ -53,10 +53,16 @@ for more information about our team and what we do.
  
 ## Classes and Structure
 
-There are two classes in the module: ForwardMLPF and InverseMLPF. ForwardMLPF defines an object that lets you 
+There are two main classes in the module: ForwardMLPF and InverseMLPF. ForwardMLPF defines an object that lets you 
 implement this ML model of the forward power flow equations, and InverseMLPF likewise implements 
  the reverse mapping. Please see mlpf.py for more details on the methods and attributes of this class. 
 
+A third class detailed in make_pf_data.py, GenerateDataMLPF, can be used to generate power
+flow data from home load profiles (for example, profiles sampled from the Pecan Street database). 
+This is demonstrated in Sample_Script.ipynb. Generating the power flow data enables
+the user to run and test the ML power flow algorithms without having real measurement data
+for voltage or power injections in a network, but it is only a substitute validation for working 
+with real data. 
 
 ## Sample Application Code
 
@@ -69,9 +75,9 @@ gives examples of calling all the methods. The input data is four numpy arrays o
 num_samples x num_bus, one for each the real power injection, reactive power injection, 
 voltage magnitude, and voltage phase angle. There are two ways you provide data to the model:
 - Prepare and load your own measurement data.
-- Provide home load data and use the functions provided (soon to be added) 
-to generate network measurement data through pandapower and your choice of standard test 
-networks.
+- Provide home load data and use the GenerateDataMLPF class in make_pf_data.py
+to generate network measurement data through pandapower with your choice of standard test 
+network.
 
 Once the models are fit you can use the built-in methods to calculate the test errors on 
 the test set, but you can also apply the object to any new input sample that you want.

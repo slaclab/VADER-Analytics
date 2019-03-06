@@ -23,7 +23,6 @@ class ForwardMLPF:
 
     The methods in this class ingest and process voltage and power injection data, fit an SVR model for the mappings
     at each bus in the network, and test the mapping using a reserved test set.
-
     """
 
     def __init__(self, num_bus, num_samples):
