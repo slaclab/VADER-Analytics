@@ -1,4 +1,4 @@
-Back to [README](../master/README.md)
-Back to [BACKGROUND](../master/docs/BACKGROUND.md)
+Back to [README](../README.md)
+Back to [BACKGROUND](../docs/BACKGROUND.md)
 
 ## ML-based Power Flow - Inverse
