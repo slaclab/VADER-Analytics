@@ -2,8 +2,7 @@
 Visualization and Analytics for Distributed Energy Resources
 
 ### Introduction
-VADER is a collection of analytics developed from the ground up to enable utilities to have greater visibility
-into distributed energy resources. We’ve built several batch- and stream-analytics in VADER that help operators better understand the impact of distributed energy resources on the grid. Each of these analytics shares a common data infrastructure referred to as VADER Data Platform.
+VADER is a collection of analytics developed with support from U.S. Department of Energy.
 
 Refer to [BACKGROUND.md](../master/docs/BACKGROUND.md) for more information on project background and the problems we're trying to solve.
 
@@ -25,3 +24,4 @@ We use [SemVer](https://semver.org/) for versioning. For the versions available,
 Mayank Malik - [Github](http://github.com/malikmayank) and [LinkedIn](https://www.linkedin.com/in/malikmayank/)
 
 ### Acknowledgements
+<<< INCLUDE DOE ACKNOWLEDGEMENT STATEMENT HERE >>>
