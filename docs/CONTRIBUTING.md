@@ -21,5 +21,5 @@ Improving documentation, bug triaging, or writing tutorials are all examples of 
 
 ### We are NOT looking for contributions in the following areas:
 *
-*
 * 
+*
