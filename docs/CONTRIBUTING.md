@@ -1,4 +1,4 @@
-Back to [README](../master/README.md)
+Back to [README](../README.md)
 
 ## Introduction
 This document provides detail how people can contribute to your open source project.
@@ -21,5 +21,5 @@ Improving documentation, bug triaging, or writing tutorials are all examples of 
 
 ### We are NOT looking for contributions in the following areas:
 *
-* 
+*
 *
