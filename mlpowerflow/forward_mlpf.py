@@ -8,6 +8,9 @@ from sklearn.preprocessing import StandardScaler
 from sklearn import linear_model
 from sklearn.linear_model import LinearRegression
 
+import warnings
+warnings.filterwarnings('ignore', 'Solver terminated early.*')
+
 
 class ForwardMLPF(object):
     """Build, train, implement, and test an ML model of the forward power flow equations.
@@ -45,6 +48,7 @@ class ForwardMLPF(object):
         self.test_y_values = np.zeros((1, 1))
         self.test_error_values = np.zeros((1, 1))
         self.total_rmse = np.zeros((1, 1))
+        self.best_svr_models = {}
         self.b = np.zeros((1, 1))
         self.coeffs = np.zeros((1, 1))
         self.num_SV = np.zeros((1, 1))
@@ -90,7 +94,7 @@ class ForwardMLPF(object):
         self.p = np.copy(p)
         self.q = np.copy(q)
         self.v = np.copy(v)
-        self.a = np.copy(a)
+        self.a = np.deg2rad(np.copy(a))
         
         # Cartesian coordinates for input
         u = v * np.cos(a)  # Make sure a is in radians
@@ -171,8 +175,36 @@ class ForwardMLPF(object):
         self.y_test = np.copy(y_test)
         self.num_train = num_train
         self.num_test = num_test
+        
+    def scale_data(self):
+        
+        self.X_means = np.mean(self.X_train, axis=0)
+        self.X_stds = np.std(self.X_train, axis=0)
+        self.y_means = np.mean(self.y_train, axis=0)
+        self.y_stds = np.std(self.y_train, axis=0)
+        
+        for i in range(np.shape(self.X_train)[1]):
+            if self.X_stds[i] != 0:
+                self.X_train[:, i] = (self.X_train[:, i] - self.X_means[i])/self.X_stds[i]
+                self.X_test[:, i] = (self.X_test[:, i] - self.X_means[i])/self.X_stds[i]
+            else:
+                self.X_train[:, i] = (self.X_train[:, i] - self.X_means[i])
+                self.X_test[:, i] = (self.X_test[:, i] - self.X_means[i])
+        for j in range(np.shape(self.y_train)[1]):
+            if self.y_stds[j] != 0:
+                self.y_train[:, j] = (self.y_train[:, j] - self.y_means[j])/self.y_stds[j]
+                self.y_test[:, j] = (self.y_test[:, j] - self.y_means[j])/self.y_stds[j]
+            else:
+                self.y_train[:, j] = (self.y_train[:, j] - self.y_means[j])
+                self.y_test[:, j] = (self.y_test[:, j] - self.y_means[j])
+                
+    def scale_back_sample_y(self, y_prediction, bus_number):
+        
+        true_y = y_prediction*self.y_stds[bus_number] + self.y_means[bus_number]
 
-    def fit_svr(self, C_set, eps_set, max_iter):
+        return true_y
+
+    def fit_svr(self, C_set, eps_set, max_iter, which_bus=None):
         """
         Train the SVR model to represent the power flow mapping f: X -> y at each bus and save the model parameters.
 
@@ -195,6 +227,8 @@ class ForwardMLPF(object):
             Values to try for C and epsilon, tunable parameters in the SVR model
         max_iter: int
             Maximum number of iterations to allow in the SVR fitting. This is used to limit the model training time.
+        which_bus: list of int
+            Optional input choosing which buses to build a model for.
 
         Attributes
         ----------
@@ -211,6 +245,9 @@ class ForwardMLPF(object):
 
         """
 
+        if which_bus is None: 
+            which_bus = np.arange(0, 2*self.num_bus)
+        
         b = np.zeros((2*self.num_bus, 1))
         coeffs = np.zeros((2*self.num_bus, self.num_train))
         num_SV = np.zeros((2*self.num_bus, 1))
@@ -218,20 +255,23 @@ class ForwardMLPF(object):
         C_best = np.zeros((2*self.num_bus, 1))
         eps_best = np.zeros((2*self.num_bus, 1))
 
-        for j in range(2*self.num_bus):
+        for l in range(np.shape(which_bus)[0]):# 2*self.num_bus):
 
+            j = which_bus[l] # Bus index
+            
             tuned_parameters = [{'kernel': ['poly'], 'degree': [2.0], 'C': C_set, 'epsilon': eps_set,
                                  'max_iter':[max_iter]}]
 
-            scaler_x = StandardScaler()
-            scaler_x.fit(self.X_train)
-            scaler_y = StandardScaler()
-            scaler_y.fit(self.y_train[:, j].reshape((self.num_train, 1)))
+#             scaler_x = StandardScaler()
+#             scaler_x.fit(self.X_train)
+#             scaler_y = StandardScaler()
+#             scaler_y.fit(self.y_train[:, j].reshape((self.num_train, 1)))
 
             regr_test = GridSearchCV(SVR(), tuned_parameters)
-            regr_test.fit(scaler_x.transform(self.X_train),
-                          (scaler_y.transform(self.y_train[:, j].reshape((self.num_train, 1))))
-                          .reshape((self.num_train,)))
+            regr_test.fit(self.X_train, self.y_train[:, j].reshape((self.num_train, )))
+#             regr_test.fit(scaler_x.transform(self.X_train),
+#                           (scaler_y.transform(self.y_train[:, j].reshape((self.num_train, 1))))
+#                           .reshape((self.num_train,)))
 
             regr_svr = regr_test.best_estimator_
             eps_best[j] = regr_svr.epsilon
@@ -243,6 +283,8 @@ class ForwardMLPF(object):
                 vals = regr_svr.dual_coef_
                 coeffs[j, regr_svr.support_[i]] = vals.item(i)
                 SV_inds[j, regr_svr.support_[i]] = 1
+            
+            self.best_svr_models[j] = regr_svr
                 
         self.b = b
         self.coeffs = coeffs
@@ -251,7 +293,7 @@ class ForwardMLPF(object):
         self.C_best = C_best
         self.eps_best = eps_best
 
-    def apply_svr(self, X_sample):
+    def apply_svr(self, X_sample, which_bus=None):
         """
         Apply the SVR model on the single input, X_sample, to estimate the power injections at each bus.
 
@@ -269,6 +311,8 @@ class ForwardMLPF(object):
         ----------
         X_sample: array_like
             The input sample of cartesian voltage data on which we apply the model
+        which_bus: list of int
+            Optional input telling the method which buses there are models for
 
         Returns
         ----------
@@ -276,22 +320,29 @@ class ForwardMLPF(object):
             The output value of real and reactive power injections for this sample, estimated by the SVR model
 
         """
+        
+        if which_bus is None:
+            which_bus = np.arange(0, 2*self.num_bus)
 
         y_output = np.zeros((2*self.num_bus,))
-        scaler_x = StandardScaler()
-        scaler_x.fit(self.X_train)        
+#         scaler_x = StandardScaler()
+#         scaler_x.fit(self.X_train)        
 
-        for k in range(2*self.num_bus):
-            K = polynomial_kernel(scaler_x.transform(self.X_train),
-                                  scaler_x.transform(X_sample.reshape((1, 2*self.num_bus))),
-                                  degree=2, gamma=1.0, coef0=1.0)
-            scaler_y = StandardScaler()
-            scaler_y.fit(self.y_train[:, k].reshape((self.num_train, 1)))
-            y_output[k] = scaler_y.inverse_transform((np.mat(self.coeffs[k, :])*np.mat(K) + self.b[k, 0]).reshape((1, 1)))
+        for i in range(np.shape(which_bus)[0]):  #2*self.num_bus):
+            k = which_bus[i]
+#             K = polynomial_kernel(self.X_train, X_sample.reshape((1, 2*self.num_bus)), degree=2, gamma=1.0, coef0=1.0)
+#             K = polynomial_kernel(scaler_x.transform(self.X_train),
+#                                   scaler_x.transform(X_sample.reshape((1, 2*self.num_bus))),
+#                                   degree=2, gamma=1.0, coef0=1.0)
+#             scaler_y = StandardScaler()
+#             scaler_y.fit(self.y_train[:, k].reshape((self.num_train, 1)))
+#             y_output[k] = np.reshape(np.mat(self.coeffs[k, :])*np.mat(K) + self.b[k, 0], (1, 1))
+#             y_output[k] = scaler_y.inverse_transform((np.mat(self.coeffs[k, :])*np.mat(K) + self.b[k, 0]).reshape((1, 1)))
+            y_output[k] = self.best_svr_models[k].predict(X_sample.reshape((1, 2*self.num_bus)))
 
         return y_output
 
-    def test_error_svr(self):
+    def test_error_svr(self, which_bus=None):
         """
         Calculate the test error of the model over the full test set.
 
@@ -299,6 +350,11 @@ class ForwardMLPF(object):
         compares the models estimates of the power injections against the true values from y_test. A measure of the
         total root mean squared error, total_rmse, is used to quantify the difference between the estimates and
         measured values over the whole set.
+        
+        Parameters
+        ----------
+        which_bus: list of int
+            Optional input telling the method which bus models to test.
 
         Attributes
         ----------
@@ -316,7 +372,7 @@ class ForwardMLPF(object):
 
         for i in range(self.num_test):
 
-            test_y_values[i, :] = self.apply_svr(self.X_test[i, :])
+            test_y_values[i, :] = self.apply_svr(self.X_test[i, :], which_bus)
             test_error_values[i] = np.linalg.norm(test_y_values[i, :] -
                                                   self.y_test[i, :], 2) / np.power(2 * self.num_bus, 0.5)
 

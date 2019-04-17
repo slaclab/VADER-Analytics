@@ -4,8 +4,12 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import train_test_split
 from sklearn.metrics.pairwise import polynomial_kernel
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 from sklearn import linear_model
 from sklearn.linear_model import LinearRegression
+
+import warnings
+warnings.filterwarnings('ignore', 'Solver terminated early.*')
 
 
 class InverseMLPF(object):
@@ -49,6 +53,7 @@ class InverseMLPF(object):
         self.test_y_values_lr = np.zeros((1, 1))
         self.test_error_values_lr = np.zeros((1, 1))
         self.total_rmse_lr = np.zeros((1, 1))
+        self.best_svr_models = {}
         self.b = np.zeros((1, 1))
         self.coeffs = np.zeros((1, 1))
         self.num_SV = np.zeros((1, 1))
@@ -97,7 +102,7 @@ class InverseMLPF(object):
         if a is None:
             self.a = np.zeros(np.shape(v))
         else:
-            self.a = np.copy(a)
+            self.a = np.deg2rad(np.copy(a))
 
         # Joined p and q for output
         pq = np.zeros((num_samples, 2 * num_bus))
@@ -174,8 +179,36 @@ class InverseMLPF(object):
         self.y_test = np.copy(y_test)
         self.num_train = num_train
         self.num_test = num_test
+        
+    def scale_data(self):
+        
+        self.X_means = np.mean(self.X_train, axis=0)
+        self.X_stds = np.std(self.X_train, axis=0)
+        self.y_means = np.mean(self.y_train, axis=0)
+        self.y_stds = np.std(self.y_train, axis=0)
+        
+        for i in range(np.shape(self.X_train)[1]):
+            if self.X_stds[i] != 0:
+                self.X_train[:, i] = (self.X_train[:, i] - self.X_means[i])/self.X_stds[i]
+                self.X_test[:, i] = (self.X_test[:, i] - self.X_means[i])/self.X_stds[i]
+            else:
+                self.X_train[:, i] = (self.X_train[:, i] - self.X_means[i])
+                self.X_test[:, i] = (self.X_test[:, i] - self.X_means[i])
+        for j in range(np.shape(self.y_train)[1]):
+            if self.y_stds[j] != 0:
+                self.y_train[:, j] = (self.y_train[:, j] - self.y_means[j])/self.y_stds[j]
+                self.y_test[:, j] = (self.y_test[:, j] - self.y_means[j])/self.y_stds[j]
+            else:
+                self.y_train[:, j] = (self.y_train[:, j] - self.y_means[j])
+                self.y_test[:, j] = (self.y_test[:, j] - self.y_means[j])
+                
+    def scale_back_sample_y(self, y_prediction, bus_number):
+        
+        true_y = y_prediction*self.y_stds[bus_number] + self.y_means[bus_number]
 
-    def fit_svr(self, C_set, eps_set, max_iter):
+        return true_y
+
+    def fit_svr(self, C_set, eps_set, max_iter, which_bus=None):
         """
         Train the SVR model to represent the inverse power flow mapping f: X -> y at each bus and save the
         model parameters.
@@ -216,28 +249,25 @@ class InverseMLPF(object):
             The best C and epsilon values as chosen by GridSearchCV for each model, both num_models x 1 arrays
 
         """
+        
+        if which_bus is None:
+            which_bus = np.arange(0, 2*self.num_bus)
 
-        b = np.zeros((self.num_bus, 1))
-        coeffs = np.zeros((self.num_bus, self.num_train))
-        num_SV = np.zeros((self.num_bus, 1))
-        SV_inds = np.zeros((self.num_bus, self.num_train))
-        C_best = np.zeros((self.num_bus, 1))
-        eps_best = np.zeros((self.num_bus, 1))
+        b = np.zeros((2*self.num_bus, 1))
+        coeffs = np.zeros((2*self.num_bus, self.num_train))
+        num_SV = np.zeros((2*self.num_bus, 1))
+        SV_inds = np.zeros((2*self.num_bus, self.num_train))
+        C_best = np.zeros((2*self.num_bus, 1))
+        eps_best = np.zeros((2*self.num_bus, 1))
 
-        for j in range(self.num_bus):
+        for l in range(np.shape(which_bus)[0]): #self.num_bus):
+            j = which_bus[l]
 
             tuned_parameters = [{'kernel': ['poly'], 'degree': [2.0], 'C': C_set, 'epsilon': eps_set,
                                  'max_iter': [max_iter]}]
 
-            scaler_x = StandardScaler()
-            scaler_x.fit(self.X_train)
-            scaler_y = StandardScaler()
-            scaler_y.fit(self.y_train[:, j].reshape((self.num_train, 1)))
-
             regr_test = GridSearchCV(SVR(), tuned_parameters)
-            regr_test.fit(scaler_x.transform(self.X_train),
-                          (scaler_y.transform(self.y_train[:, j].reshape((self.num_train, 1))))
-                          .reshape((self.num_train,)))
+            regr_test.fit(self.X_train, self.y_train[:, j].reshape((self.num_train,)))
 
             regr_svr = regr_test.best_estimator_
             eps_best[j] = regr_svr.epsilon
@@ -250,6 +280,7 @@ class InverseMLPF(object):
                 coeffs[j, regr_svr.support_[i]] = vals.item(i)
                 SV_inds[j, regr_svr.support_[i]] = 1
 
+            self.best_svr_models[j] = regr_svr
             print('Done training voltage model for bus ', j, ', with a total of ',np.size(regr_svr.support_),
                   ' support vectors.')
 
@@ -341,18 +372,10 @@ class InverseMLPF(object):
             which_buses = range(2 * self.num_bus)
 
         y_output = np.zeros((np.shape(which_buses)[0],))
-        scaler_x = StandardScaler()
-        scaler_x.fit(self.X_train)
 
-        for j in range(np.shape(which_buses)[0]):  # range(2 * self.num_bus):
+        for j in range(np.shape(which_buses)[0]):
             k = which_buses[j]
-            K = polynomial_kernel(scaler_x.transform(self.X_train),
-                                  scaler_x.transform(X_sample.reshape((1, 2 * self.num_bus))),
-                                  degree=2, gamma=1.0, coef0=1.0)
-            scaler_y = StandardScaler()
-            scaler_y.fit(self.y_train[:, k].reshape((self.num_train, 1)))
-            y_output[j] = scaler_y.inverse_transform(
-                (np.mat(self.coeffs[k, :]) * np.mat(K) + self.b[k, 0]).reshape((1, 1)))
+            y_output[j] = self.best_svr_models[k].predict(X_sample.reshape((1, 2*self.num_bus)))
 
         return y_output
 
@@ -411,7 +434,7 @@ class InverseMLPF(object):
             which_buses = range(2 * self.num_bus)
 
         test_error_values = np.zeros((self.num_test, 1))
-        test_y_values = np.zeros((self.num_test, np.shape(which_buses)[0]))  # 2 * self.num_bus))
+        test_y_values = np.zeros((self.num_test, np.shape(which_buses)[0]))
 
         for i in range(self.num_test):
             test_y_values[i, :] = self.apply_svr(self.X_test[i, :], which_buses)
