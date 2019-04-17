@@ -13,7 +13,7 @@ need to have access to the solar generation both historically and in real time.
 ## Solution:
 The proposed method (Contextually Supervised Source Separatio) aims to separate the metered netload into two distinct signals: solar generation and  load consumption at the feeder and individual customer level. This approach uses only existing AMI measurements, solar information, such as irradiance or monitored solar generation at a specific site in the same region, outside temperatures and hour of the day. The disaggregation is performed both historically and real time.
 
-Please refer to the paper for more details aobut the theory and the results:
+Please refer to the paper for more details aobut the theory and the results:  
 "Michaelangelo Tabone, Sila Kiliccote, and Emre Can Kara. Disaggregating solar generation behind individual meters in real time. Proceedings of the 5th Conference on Systems for Built Environments - BuildSys 18, 2018. doi: 10.1145/3276774.3276776."
 
 # List of folders
