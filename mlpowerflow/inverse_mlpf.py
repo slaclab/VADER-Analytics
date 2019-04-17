@@ -251,16 +251,16 @@ class InverseMLPF(object):
         """
         
         if which_bus is None:
-            which_bus = np.arange(0, 2*self.num_bus)
+            which_bus = np.arange(0, self.num_bus)
 
-        b = np.zeros((2*self.num_bus, 1))
-        coeffs = np.zeros((2*self.num_bus, self.num_train))
-        num_SV = np.zeros((2*self.num_bus, 1))
-        SV_inds = np.zeros((2*self.num_bus, self.num_train))
-        C_best = np.zeros((2*self.num_bus, 1))
-        eps_best = np.zeros((2*self.num_bus, 1))
+        b = np.zeros((self.num_bus, 1))
+        coeffs = np.zeros((self.num_bus, self.num_train))
+        num_SV = np.zeros((self.num_bus, 1))
+        SV_inds = np.zeros((self.num_bus, self.num_train))
+        C_best = np.zeros((self.num_bus, 1))
+        eps_best = np.zeros((self.num_bus, 1))
 
-        for l in range(np.shape(which_bus)[0]): #self.num_bus):
+        for l in range(np.shape(which_bus)[0]): 
             j = which_bus[l]
 
             tuned_parameters = [{'kernel': ['poly'], 'degree': [2.0], 'C': C_set, 'epsilon': eps_set,
