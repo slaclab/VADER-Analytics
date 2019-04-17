@@ -1,4 +1,4 @@
-Back to [README](../README.md)
+Back to [README](../README.md)  
 Back to [BACKGROUND](../docs/BACKGROUND.md)
 
 # Solar Disaggregation
@@ -21,10 +21,10 @@ Please refer to the paper for more details aobut the theory and the results:
 ## csss:
 Contains the main libraries to perform the solar disaggregation and utilities. 
 - CSSS: general contextually source separation method
-- SolaDisagg: 
--- SolarDisagg_IndvHome: perform the historical solar disaggregation
--- SolarDisagg_IndvHome_Realtime: perform the real-time solar disaggregation
-- utilities: general useful functions
+- SolaDisagg:  
+-- SolarDisagg_IndvHome: perform the historical solar disaggregation 
+-- SolarDisagg_IndvHome_Realtime: perform the real-time solar disaggregation  
+-- utilities: general useful functions  
 ## Custom_Functions:
 General useful functions
 ## Exploratory_work:
