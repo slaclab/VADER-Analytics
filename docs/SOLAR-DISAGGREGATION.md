@@ -24,17 +24,23 @@ Contains the main libraries to perform the solar disaggregation and utilities.
 - SolaDisagg:  
 -- SolarDisagg_IndvHome: perform the historical solar disaggregation  
 -- SolarDisagg_IndvHome_Realtime: perform the real-time solar disaggregation  
--- utilities: general useful functions  
+- utilities: general useful functions 
+## scripts:
+- tutorial_data_setup: example on how to retrieve the data from Pecan Street
+## keys: 
+This is the folder where to place the .txt file containing the keys to retrieve the data from Pecan Street
+## General:
+- SolarDisagg_Individual_Home_Tutorial_Main: Tutorial on how to perform the solar disaggregation using tutorial data
+- SolarDisagg_Individual_Home_Historical: the main notebook to perform historical solar disaggregation using CSSS
+- SolarDisagg_Individual_Home_Historical_linear_model: the main notebook to perform historical solar disaggregation using the inference approach based on a linear model 
 ## Custom_Functions:
 General useful functions
 ## Exploratory_work:
-Contains notebooks related to exploratory work. such as batch solar and non solar houses classification and signal to noise ratio.
+Contains notebooks related to exploratory work.
+- SolarIDS_classification: batch solar and non solar houses classification
+- CV_signal_to_noise: impact of signal to noise ratio on the algorithm performances
+- Solar_inference_linear_Vs_SD_comparison: comparison between CSSS and an inference based approach.
 ## Solar Disaggregation Analysis:
 Contains the original notebooks left by MT
 ## Validation:
 Contains the main notebooks and python files used to perform the extended validation.
-## General:
-- SolarDisagg_Individual_Home_Historical
-- SolarDisagg_Individual_Home_Historical_linear
-
-are the main notebooks used to perform the historcal disaggregation.
