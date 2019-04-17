@@ -5,7 +5,7 @@ import pandapower.networks
 import numpy.random
 
 
-class GenerateDataMLPF:
+class GenerateDataMLPF(object):
     """ Use load data to create a set of power flow measurements required by the MLPF algorithms.
 
     This class uses the package Pandapower to run power flow calculations. Given home load data, it builds up a network
