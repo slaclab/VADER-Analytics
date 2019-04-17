@@ -39,6 +39,6 @@ Contains notebooks related to exploratory work.
 - CV_signal_to_noise: impact of signal to noise ratio on the algorithm performances
 - Solar_inference_linear_Vs_SD_comparison: comparison between CSSS and an inference based approach.
 ## Solar Disaggregation Analysis:
-Contains the original notebooks left by MT
+Exploratory Data Analysis
 ## Validation:
 Contains the main notebooks and python files used to perform the extended validation.
