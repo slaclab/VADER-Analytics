@@ -47,7 +47,8 @@ class ForwardMLPF(object):
         self.y_test = np.zeros((1, 1))
         self.test_y_values = np.zeros((1, 1))
         self.test_error_values = np.zeros((1, 1))
-        self.total_rmse = np.zeros((1, 1))
+        self.scaled_total_rmse = np.zeros((1, 1))
+        self.mean_rmse = np.zeros((1, 1))
         self.best_svr_models = {}
         self.b = np.zeros((1, 1))
         self.coeffs = np.zeros((1, 1))
@@ -55,6 +56,10 @@ class ForwardMLPF(object):
         self.SV_inds = np.zeros((1, 1))
         self.C_best = np.zeros((1, 1))
         self.eps_best = np.zeros((1, 1))
+        self.X_means = np.zeros((1, 1))
+        self.X_stds = np.zeros((1, 1))
+        self.y_means = np.zeros((1, 1))
+        self.y_stds = np.zeros((1, 1))
 
     def supply_full_data(self, p, q, v, a, num_bus, num_samples):
         """
@@ -94,10 +99,10 @@ class ForwardMLPF(object):
         self.p = np.copy(p)
         self.q = np.copy(q)
         self.v = np.copy(v)
-        self.a = np.deg2rad(np.copy(a))
+        self.a = np.deg2rad(np.copy(a))  # Pandapower output is in degrees but we need a in radians
         
         # Cartesian coordinates for input
-        u = v * np.cos(a)  # Make sure a is in radians
+        u = v * np.cos(a)
         w = v * np.sin(a)
         uw = np.zeros((num_samples, 2*num_bus))
         uw[:, np.arange(0, num_bus)] = u
@@ -177,6 +182,20 @@ class ForwardMLPF(object):
         self.num_test = num_test
         
     def scale_data(self):
+        """
+        Scale the data using the mean and variance of each variable over the training set. The means and standard
+        deviations are stored and used later to recover true outputs from the model estimates.
+
+
+        Attributes
+        ----------
+        X_means, y_means: array_like
+            The mean of each variable in the training set
+        X_stds, y_stds: array_like
+            The standard deviation of each variable in the training set
+        X_train, y_train, X_test, y_test: array_like
+            Updated according to the new scaling
+        """
         
         self.X_means = np.mean(self.X_train, axis=0)
         self.X_stds = np.std(self.X_train, axis=0)
@@ -199,12 +218,45 @@ class ForwardMLPF(object):
                 self.y_test[:, j] = (self.y_test[:, j] - self.y_means[j])
                 
     def scale_back_sample_y(self, y_prediction, bus_number):
+        """
+        Given a model prediction over time at a certain bus or for a certain output variable, scale back to the
+        original scaling to give a true estimate of the variable.
+
+        Parameters
+        ----------
+        y_prediction: array_like
+            The output returned by the model, scaled according to the scale_data() method
+        bus_number: int
+            Which feature or variable that prediction relates to
+
+        Returns
+        ----------
+        true_y: array_like
+            A rescaled version of y_prediction
+        """
         
         true_y = y_prediction*self.y_stds[bus_number] + self.y_means[bus_number]
 
         return true_y
     
     def scale_back_multiple_y(self, y_vector, bus_number_vector):
+        """
+        Given a model prediction at one time over several buses, scale back to the original scaling to give a true
+        estimate of those variables.
+
+        Parameters
+        ----------
+        y_vector: array_like
+            The output returned by the model, scaled according to the scale_data() method. A vector at one time for
+            several buses/features
+        bus_number: list of int
+            Which features are predicted in y_vector
+
+        Returns
+        ----------
+        true_y: array_like
+            The rescaled output
+        """
         
         true_y = np.zeros(np.shape(y_vector))
         for i in range(np.shape(y_vector)[0]):
@@ -219,8 +271,7 @@ class ForwardMLPF(object):
         This method builds a Support Vector Regression (SVR) model using sklearn.svm.SVR to predict the power
         injections at each bus in the network. sklearn.model_selection.GridSearchCV is used to find the optimal
         combination of C (regularization parameter) and epsilon (data significance measure) for each model, given the
-        options in inputs C_set and eps_set. The data is preprocessed before fitting using
-        sklearn.preprocessing.StandardScaler.
+        options in inputs C_set and eps_set.
 
         The parameters of the trained models are collected into arrays and store as attributes of the model so that
         they can later be used for testing and prediction. Please see the documentation on sklearn.svm.SVR for more
@@ -250,6 +301,8 @@ class ForwardMLPF(object):
             The indices of which training samples were used as Support Vectors in each model, num_models x num_train
         C_best, eps_best: array_like
             The best C and epsilon values as chosen by GridSearchCV for each model, both num_models x 1 arrays
+        best_svr_models: objects
+            The model objects from sklearn
 
         """
 
@@ -263,23 +316,15 @@ class ForwardMLPF(object):
         C_best = np.zeros((2*self.num_bus, 1))
         eps_best = np.zeros((2*self.num_bus, 1))
 
-        for l in range(np.shape(which_bus)[0]):# 2*self.num_bus):
+        for l in range(np.shape(which_bus)[0]):
 
-            j = which_bus[l] # Bus index
+            j = which_bus[l]  # Bus index
             
             tuned_parameters = [{'kernel': ['poly'], 'degree': [2.0], 'C': C_set, 'epsilon': eps_set,
                                  'max_iter':[max_iter]}]
 
-#             scaler_x = StandardScaler()
-#             scaler_x.fit(self.X_train)
-#             scaler_y = StandardScaler()
-#             scaler_y.fit(self.y_train[:, j].reshape((self.num_train, 1)))
-
             regr_test = GridSearchCV(SVR(), tuned_parameters)
             regr_test.fit(self.X_train, self.y_train[:, j].reshape((self.num_train, )))
-#             regr_test.fit(scaler_x.transform(self.X_train),
-#                           (scaler_y.transform(self.y_train[:, j].reshape((self.num_train, 1))))
-#                           .reshape((self.num_train,)))
 
             regr_svr = regr_test.best_estimator_
             eps_best[j] = regr_svr.epsilon
@@ -309,12 +354,6 @@ class ForwardMLPF(object):
         coeffs, and sklearn.metrics.pairwise.polynomial_kernel is used to efficiently calculate the quadratic kernel
         keeping all the same parameters that were prescribed in the fitting.
 
-        Applying the model to this un-scaled input requires regenerating the StandardScaler tool used in the training.
-        scaler_x is generated using the original X_train used to fit the model and then is applied to the new X input,
-        X_sample. scaler_y is generated using the original y_train used to fit the model and then is used to un-scale
-        the predicted output, returning a prediction y_output that should approximate the true measurement data for
-        that sample.
-
         Parameters
         ----------
         X_sample: array_like
@@ -334,7 +373,7 @@ class ForwardMLPF(object):
 
         y_output = np.zeros((2*self.num_bus,))
 
-        for i in range(np.shape(which_bus)[0]):  #2*self.num_bus):
+        for i in range(np.shape(which_bus)[0]):
             k = which_bus[i]
             y_output[k] = self.best_svr_models[k].predict(X_sample.reshape((1, 2*self.num_bus)))
 
@@ -357,11 +396,13 @@ class ForwardMLPF(object):
         Attributes
         ----------
         test_y_values: array_like
-            The output values estimated by the model for each sample
+            The output values estimated by the model for each sample, scaled
         test_error_values: array_like
             The RMSE error for each sample between the estimated and measured values
-        total_rmse: float
-            The total RMSE error in the estimates from the test set
+        scaled_total_rmse: float
+            The total RMSE error in the estimates from the test set, using the scaled data
+        mean_rmse: float
+            The mean of the test_error_values RMSEs
 
         """
 
