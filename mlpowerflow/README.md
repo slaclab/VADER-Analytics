@@ -1,6 +1,6 @@
 # Machine Learning Power Flow
 
-~March 5, 2019~
+March 5, 2019
 
 #### Forward Mapping: Voltage to Power Injections
 
