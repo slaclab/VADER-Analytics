@@ -438,14 +438,16 @@ class InverseMLPF(object):
 
         for i in range(self.num_test):
             test_y_values[i, :] = self.apply_svr(self.X_test[i, :], which_buses)
-            test_error_values[i] = np.linalg.norm(test_y_values[i, :] -
-                                                  self.y_test[i, :], 2) / np.power(np.shape(which_buses)[0], 0.5)
+            test_error_values[i] = np.linalg.norm(self.scale_back_multiple_y(test_y_values[i, :], np.arange(0, 2*self.num_bus)) -
+                                                  self.scale_back_multiple_y(self.y_test[i, :], np.arange(0, 2*self.num_bus)), 2) / np.power(2 * self.num_bus, 0.5)
 
-        total_rmse = np.sqrt(np.mean(np.power(test_y_values - self.y_test, 2)))
-
-        self.test_y_values_svr = test_y_values
-        self.test_error_values_svr = test_error_values
-        self.total_rmse_svr = total_rmse
+        scaled_total_rmse = np.sqrt(np.mean(np.power(test_y_values - self.y_test, 2)))
+        mean_rmse = np.mean(test_error_values)
+        
+        self.test_y_values = test_y_values
+        self.test_error_values = test_error_values
+        self.scaled_total_rmse = scaled_total_rmse
+        self.mean_rmse = mean_rmse
 
     def test_error_lr(self, which_buses=None):
         """

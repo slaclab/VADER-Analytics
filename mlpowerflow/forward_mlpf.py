@@ -203,6 +203,14 @@ class ForwardMLPF(object):
         true_y = y_prediction*self.y_stds[bus_number] + self.y_means[bus_number]
 
         return true_y
+    
+    def scale_back_multiple_y(self, y_vector, bus_number_vector):
+        
+        true_y = np.zeros(np.shape(y_vector))
+        for i in range(np.shape(y_vector)[0]):
+            true_y[i] = y_vector[i]*self.y_stds[bus_number_vector[i]] + self.y_means[bus_number_vector[i]]
+            
+        return true_y
 
     def fit_svr(self, C_set, eps_set, max_iter, which_bus=None):
         """
@@ -325,19 +333,9 @@ class ForwardMLPF(object):
             which_bus = np.arange(0, 2*self.num_bus)
 
         y_output = np.zeros((2*self.num_bus,))
-#         scaler_x = StandardScaler()
-#         scaler_x.fit(self.X_train)        
 
         for i in range(np.shape(which_bus)[0]):  #2*self.num_bus):
             k = which_bus[i]
-#             K = polynomial_kernel(self.X_train, X_sample.reshape((1, 2*self.num_bus)), degree=2, gamma=1.0, coef0=1.0)
-#             K = polynomial_kernel(scaler_x.transform(self.X_train),
-#                                   scaler_x.transform(X_sample.reshape((1, 2*self.num_bus))),
-#                                   degree=2, gamma=1.0, coef0=1.0)
-#             scaler_y = StandardScaler()
-#             scaler_y.fit(self.y_train[:, k].reshape((self.num_train, 1)))
-#             y_output[k] = np.reshape(np.mat(self.coeffs[k, :])*np.mat(K) + self.b[k, 0], (1, 1))
-#             y_output[k] = scaler_y.inverse_transform((np.mat(self.coeffs[k, :])*np.mat(K) + self.b[k, 0]).reshape((1, 1)))
             y_output[k] = self.best_svr_models[k].predict(X_sample.reshape((1, 2*self.num_bus)))
 
         return y_output
@@ -373,13 +371,15 @@ class ForwardMLPF(object):
         for i in range(self.num_test):
 
             test_y_values[i, :] = self.apply_svr(self.X_test[i, :], which_bus)
-            test_error_values[i] = np.linalg.norm(test_y_values[i, :] -
-                                                  self.y_test[i, :], 2) / np.power(2 * self.num_bus, 0.5)
+            test_error_values[i] = np.linalg.norm(self.scale_back_multiple_y(test_y_values[i, :], np.arange(0, 2*self.num_bus)) -
+                                                  self.scale_back_multiple_y(self.y_test[i, :], np.arange(0, 2*self.num_bus)), 2) / np.power(2 * self.num_bus, 0.5)
 
-        total_rmse = np.sqrt(np.mean(np.power(test_y_values - self.y_test, 2)))
+        scaled_total_rmse = np.sqrt(np.mean(np.power(test_y_values - self.y_test, 2)))
+        mean_rmse = np.mean(test_error_values)
         
         self.test_y_values = test_y_values
         self.test_error_values = test_error_values
-        self.total_rmse = total_rmse
+        self.scaled_total_rmse = scaled_total_rmse
+        self.mean_rmse = mean_rmse
 
 
