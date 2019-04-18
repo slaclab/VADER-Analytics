@@ -47,12 +47,13 @@ class InverseMLPF(object):
         self.y_train = np.zeros((1, 1))
         self.X_test = np.zeros((1, 1))
         self.y_test = np.zeros((1, 1))
-        self.test_y_values_svr = np.zeros((1, 1))
-        self.test_error_values_svr = np.zeros((1, 1))
-        self.total_rmse_svr = np.zeros((1, 1))
-        self.test_y_values_lr = np.zeros((1, 1))
-        self.test_error_values_lr = np.zeros((1, 1))
-        self.total_rmse_lr = np.zeros((1, 1))
+        self.test_y_values = np.zeros((1, 1))  # SVR
+        self.test_error_values = np.zeros((1, 1))  # SVR
+        self.scaled_total_rmse = np.zeros((1, 1))  # SVR
+        self.mean_rmse = np.zeros((1, 1))  # SVR
+        self.test_y_values_lr = np.zeros((1, 1))  # LR
+        self.test_error_values_lr = np.zeros((1, 1))  # LR
+        self.total_rmse_lr = np.zeros((1, 1))  # LR
         self.best_svr_models = {}
         self.b = np.zeros((1, 1))
         self.coeffs = np.zeros((1, 1))
@@ -62,6 +63,10 @@ class InverseMLPF(object):
         self.eps_best = np.zeros((1, 1))
         self.lr_coeffs = np.zeros((1, 1))
         self.lr_intercept = np.zeros((1, 1))
+        self.X_means = np.zeros((1, 1))
+        self.X_stds = np.zeros((1, 1))
+        self.y_means = np.zeros((1, 1))
+        self.y_stds = np.zeros((1, 1))
 
     def supply_full_data(self, p, q, v, num_bus, num_samples, a=None):
         """
@@ -102,7 +107,7 @@ class InverseMLPF(object):
         if a is None:
             self.a = np.zeros(np.shape(v))
         else:
-            self.a = np.deg2rad(np.copy(a))
+            self.a = np.deg2rad(np.copy(a))  # Output of pandapower is in degrees
 
         # Joined p and q for output
         pq = np.zeros((num_samples, 2 * num_bus))
@@ -179,32 +184,88 @@ class InverseMLPF(object):
         self.y_test = np.copy(y_test)
         self.num_train = num_train
         self.num_test = num_test
-        
+
     def scale_data(self):
-        
+        """
+        Scale the data using the mean and variance of each variable over the training set. The means and standard
+        deviations are stored and used later to recover true outputs from the model estimates.
+
+
+        Attributes
+        ----------
+        X_means, y_means: array_like
+            The mean of each variable in the training set
+        X_stds, y_stds: array_like
+            The standard deviation of each variable in the training set
+        X_train, y_train, X_test, y_test: array_like
+            Updated according to the new scaling
+        """
+
         self.X_means = np.mean(self.X_train, axis=0)
         self.X_stds = np.std(self.X_train, axis=0)
         self.y_means = np.mean(self.y_train, axis=0)
         self.y_stds = np.std(self.y_train, axis=0)
-        
+
+        # If else structure is to avoid dividing by 0 for features with constant values
         for i in range(np.shape(self.X_train)[1]):
             if self.X_stds[i] != 0:
-                self.X_train[:, i] = (self.X_train[:, i] - self.X_means[i])/self.X_stds[i]
-                self.X_test[:, i] = (self.X_test[:, i] - self.X_means[i])/self.X_stds[i]
+                self.X_train[:, i] = (self.X_train[:, i] - self.X_means[i]) / self.X_stds[i]
+                self.X_test[:, i] = (self.X_test[:, i] - self.X_means[i]) / self.X_stds[i]
             else:
                 self.X_train[:, i] = (self.X_train[:, i] - self.X_means[i])
                 self.X_test[:, i] = (self.X_test[:, i] - self.X_means[i])
         for j in range(np.shape(self.y_train)[1]):
             if self.y_stds[j] != 0:
-                self.y_train[:, j] = (self.y_train[:, j] - self.y_means[j])/self.y_stds[j]
-                self.y_test[:, j] = (self.y_test[:, j] - self.y_means[j])/self.y_stds[j]
+                self.y_train[:, j] = (self.y_train[:, j] - self.y_means[j]) / self.y_stds[j]
+                self.y_test[:, j] = (self.y_test[:, j] - self.y_means[j]) / self.y_stds[j]
             else:
                 self.y_train[:, j] = (self.y_train[:, j] - self.y_means[j])
                 self.y_test[:, j] = (self.y_test[:, j] - self.y_means[j])
-                
+
     def scale_back_sample_y(self, y_prediction, bus_number):
-        
-        true_y = y_prediction*self.y_stds[bus_number] + self.y_means[bus_number]
+        """
+        Given a model prediction over time at a certain bus or for a certain output variable, scale back to the
+        original scaling to give a true estimate of the variable.
+
+        Parameters
+        ----------
+        y_prediction: array_like
+            The output returned by the model, scaled according to the scale_data() method
+        bus_number: int
+            Which feature or variable that prediction relates to
+
+        Returns
+        ----------
+        true_y: array_like
+            A rescaled version of y_prediction
+        """
+
+        true_y = y_prediction * self.y_stds[bus_number] + self.y_means[bus_number]
+
+        return true_y
+
+    def scale_back_multiple_y(self, y_vector, bus_number_vector):
+        """
+        Given a model prediction at one time over several buses, scale back to the original scaling to give a true
+        estimate of those variables.
+
+        Parameters
+        ----------
+        y_vector: array_like
+            The output returned by the model, scaled according to the scale_data() method. A vector at one time for
+            several buses/features
+        bus_number_vector: list of int
+            Which features are predicted in y_vector
+
+        Returns
+        ----------
+        true_y: array_like
+            The rescaled output
+        """
+
+        true_y = np.zeros(np.shape(y_vector))
+        for i in range(np.shape(y_vector)[0]):
+            true_y[i] = y_vector[i] * self.y_stds[bus_number_vector[i]] + self.y_means[bus_number_vector[i]]
 
         return true_y
 
@@ -221,7 +282,7 @@ class InverseMLPF(object):
 
         The parameters of the trained models are collected into arrays and store as attributes of the model so that
         they can later be used for testing and prediction. Please see the documentation on sklearn.svm.SVR for more
-        information on the different attributes of the trained model.
+        information on the different attributes of the trained model. The model object itself is also saved.
 
         Since the model is designed to estimate just the voltage magnitude, there are num_bus separate models. The size
         of the input vectors is then 2*num_bus since both the real and reactive power injections, p and q, are used.
@@ -233,6 +294,8 @@ class InverseMLPF(object):
             Values to try for C and epsilon, tunable parameters in the SVR model
         max_iter: int
             Maximum number of iterations to allow in the SVR fitting. This is used to limit the model training time.
+        which_bus: list of int
+            Optional input choosing which buses to build a model for.
 
         Attributes
         ----------
@@ -251,9 +314,9 @@ class InverseMLPF(object):
         """
         
         if which_bus is None:
-            which_bus = np.arange(0, self.num_bus)
+            which_bus = np.arange(0, self.num_bus)  # Should be 2 * self.num_bus if modeling the voltage angles as well
 
-        b = np.zeros((self.num_bus, 1))
+        b = np.zeros((self.num_bus, 1))  # Should all be 2 * self.num_bus if modeling the voltage angles as well
         coeffs = np.zeros((self.num_bus, self.num_train))
         num_SV = np.zeros((self.num_bus, 1))
         SV_inds = np.zeros((self.num_bus, self.num_train))
@@ -280,7 +343,7 @@ class InverseMLPF(object):
                 coeffs[j, regr_svr.support_[i]] = vals.item(i)
                 SV_inds[j, regr_svr.support_[i]] = 1
 
-            self.best_svr_models[j] = regr_svr
+            self.best_svr_models[j] = regr_svr  # Save the model object to use for prediction later
             print('Done training voltage model for bus ', j, ', with a total of ',np.size(regr_svr.support_),
                   ' support vectors.')
 
@@ -419,6 +482,11 @@ class InverseMLPF(object):
         total root mean squared error, total_rmse, is used to quantify the difference between the estimates and
         measured values over the whole set.
 
+        Parameters
+        ----------
+        which_buses: list of int
+            Optional input choosing which buses to test the models for.
+
         Attributes
         ----------
         test_y_values: array_like
@@ -431,7 +499,7 @@ class InverseMLPF(object):
         """
 
         if which_buses is None:
-            which_buses = range(2 * self.num_bus)
+            which_buses = range(self.num_bus)
 
         test_error_values = np.zeros((self.num_test, 1))
         test_y_values = np.zeros((self.num_test, np.shape(which_buses)[0]))
@@ -458,6 +526,11 @@ class InverseMLPF(object):
         total root mean squared error, total_rmse, is used to quantify the difference between the estimates and
         measured values over the whole set.
 
+        Parameters
+        ----------
+        which_buses: list of int
+            Optional input choosing which buses to test the models for.
+
         Attributes
         ----------
         test_y_values: array_like
@@ -470,10 +543,10 @@ class InverseMLPF(object):
         """
 
         if which_buses is None:
-            which_buses = range(2 * self.num_bus)
+            which_buses = range(self.num_bus)  # Or should be 2 * self.num_bus if modeling the angles as well
 
         test_error_values = np.zeros((self.num_test, 1))
-        test_y_values = np.zeros((self.num_test, np.shape(which_buses)[0]))  # 2 * self.num_bus))
+        test_y_values = np.zeros((self.num_test, np.shape(which_buses)[0]))
 
         for i in range(self.num_test):
             test_y_values[i, :] = self.apply_lr(self.X_test[i, :], which_buses)

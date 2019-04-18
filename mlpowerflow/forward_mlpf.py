@@ -275,7 +275,7 @@ class ForwardMLPF(object):
 
         The parameters of the trained models are collected into arrays and store as attributes of the model so that
         they can later be used for testing and prediction. Please see the documentation on sklearn.svm.SVR for more
-        information on the different attributes of the trained model.
+        information on the different attributes of the trained model. The model object itself is also saved.
 
         Since the model is designed to estimate both the real and reactive power injections, p and q, there are
         2*num_bus separate models. The first num_bus models stored are for p and the second num_bus models are for q.
