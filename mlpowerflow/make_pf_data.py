@@ -13,7 +13,7 @@ class GenerateDataMLPF(object):
     injection measurements at all buses in the network.
     """
 
-    def __init__(self, network_name):
+    def __init__(self, network_name='case_ieee30'):
         """Initialize attributes of the object."""
 
         self.network_name = network_name
@@ -22,8 +22,8 @@ class GenerateDataMLPF(object):
             self.pp_net = pp.networks.create_synthetic_voltage_control_lv_network(network_class=network_name)
             net = self.pp_net
         else:
-            self.pp_net = getattr(pp.networks, network_name)
-            net = self.pp_net()
+            self.pp_net = getattr(pp.networks, network_name)()
+            net = self.pp_net
 
         self.net = net
         self.load_buses = np.copy(net.load.bus.values)
@@ -67,9 +67,7 @@ class GenerateDataMLPF(object):
             Keeps track of how many home load profiles were assigned at each load bus in the network.
         """
 
-        net = self.net
-
-        p_ref = np.copy(net.load['p_kw'].values)
+        p_ref = np.copy(self.net.load['p_kw'].values)
 
         self.num_times = np.shape(raw_load_data)[0]
         num_homes = np.shape(raw_load_data)[1]
@@ -157,20 +155,20 @@ class GenerateDataMLPF(object):
             angle. These arrays contain the values for each bus in the network.
         """
 
-        net = self.net
+        # net = self.net
 
         # Assign loads
-        df = net.load
+        df = self.net.load
         for i in range(np.shape(self.load_buses)[0]):
             df.loc[lambda df: df['bus'] == self.load_buses[i], 'p_kw'] = p_load[i]
             df.loc[lambda df: df['bus'] == self.load_buses[i], 'q_kvar'] = q_load[i]
-        net.load = df
+        self.net.load = df
 
-        pp.runpp(net)
+        pp.runpp(self.net)
 
-        p_inj = np.copy(net.res_bus.p_kw.values)
-        q_inj = np.copy(net.res_bus.q_kvar.values)
-        vm = np.copy(net.res_bus.vm_pu.values)
-        va = np.copy(net.res_bus.va_degree.values)
+        p_inj = np.copy(self.net.res_bus.p_kw.values)
+        q_inj = np.copy(self.net.res_bus.q_kvar.values)
+        vm = np.copy(self.net.res_bus.vm_pu.values)
+        va = np.copy(self.net.res_bus.va_degree.values)
 
         return p_inj, q_inj, vm, va
