@@ -201,21 +201,15 @@ class ForwardMLPF(object):
         self.X_stds = np.std(self.X_train, axis=0)
         self.y_means = np.mean(self.y_train, axis=0)
         self.y_stds = np.std(self.y_train, axis=0)
-        
+
         for i in range(np.shape(self.X_train)[1]):
-            if self.X_stds[i] != 0:
-                self.X_train[:, i] = (self.X_train[:, i] - self.X_means[i])/self.X_stds[i]
-                self.X_test[:, i] = (self.X_test[:, i] - self.X_means[i])/self.X_stds[i]
-            else:
-                self.X_train[:, i] = (self.X_train[:, i] - self.X_means[i])
-                self.X_test[:, i] = (self.X_test[:, i] - self.X_means[i])
+            denominator = self.X_stds[i] if self.X_stds[i] != 0 else 1.0
+            self.X_train[:, i] = (self.X_train[:, i] - self.X_means[i]) / denominator
+            self.X_test[:, i] = (self.X_test[:, i] - self.X_means[i]) / denominator
         for j in range(np.shape(self.y_train)[1]):
-            if self.y_stds[j] != 0:
-                self.y_train[:, j] = (self.y_train[:, j] - self.y_means[j])/self.y_stds[j]
-                self.y_test[:, j] = (self.y_test[:, j] - self.y_means[j])/self.y_stds[j]
-            else:
-                self.y_train[:, j] = (self.y_train[:, j] - self.y_means[j])
-                self.y_test[:, j] = (self.y_test[:, j] - self.y_means[j])
+            denominator = self.y_stds[i] if self.y_stds[i] != 0 else 1.0
+            self.y_train[:, j] = (self.y_train[:, j] - self.y_means[j]) / denominator
+            self.y_test[:, j] = (self.y_test[:, j] - self.y_means[j]) / denominator
                 
     def scale_back_sample_y(self, y_prediction, bus_number):
         """
