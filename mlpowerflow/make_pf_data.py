@@ -22,8 +22,12 @@ class GenerateDataMLPF(object):
             self.pp_net = pp.networks.create_synthetic_voltage_control_lv_network(network_class=network_name)
             net = self.pp_net
         else:
-            self.pp_net = getattr(pp.networks, network_name)()
-            net = self.pp_net
+            try:
+                self.pp_net = getattr(pp.networks, network_name)()
+                net = self.pp_net
+            except AttributeError:
+                print('Not a valid network name')
+
 
         self.net = net
         self.load_buses = np.copy(net.load.bus.values)
