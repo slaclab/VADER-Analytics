@@ -229,7 +229,10 @@ class ForwardMLPF(object):
             A rescaled version of y_prediction
         """
         
-        true_y = y_prediction*self.y_stds[bus_number] + self.y_means[bus_number]
+        try:
+            true_y = y_prediction * self.y_stds[bus_number] + self.y_means[bus_number]
+        except IndexError:
+            print('Index Error: Please request a rescaled output for an allowed bus_number')
 
         return true_y
     
