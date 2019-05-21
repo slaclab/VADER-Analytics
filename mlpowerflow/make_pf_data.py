@@ -26,8 +26,9 @@ class GenerateDataMLPF(object):
                 self.pp_net = getattr(pp.networks, network_name)()
                 net = self.pp_net
             except AttributeError:
-                print('Not a valid network name')
-
+                print('Not a valid network name. Applied default network case_ieee30.')
+                self.pp_net = getattr(pp.networks, 'case_ieee30')
+                net = self.pp_net
 
         self.net = net
         self.load_buses = np.copy(net.load.bus.values)
