@@ -206,8 +206,9 @@ class ForwardMLPF(object):
             denominator = self.X_stds[i] if self.X_stds[i] != 0 else 1.0
             self.X_train[:, i] = (self.X_train[:, i] - self.X_means[i]) / denominator
             self.X_test[:, i] = (self.X_test[:, i] - self.X_means[i]) / denominator
+
         for j in range(np.shape(self.y_train)[1]):
-            denominator = self.y_stds[i] if self.y_stds[i] != 0 else 1.0
+            denominator = self.y_stds[j] if self.y_stds[j] != 0 else 1.0
             self.y_train[:, j] = (self.y_train[:, j] - self.y_means[j]) / denominator
             self.y_test[:, j] = (self.y_test[:, j] - self.y_means[j]) / denominator
                 
