@@ -1,6 +1,6 @@
 Back to [README](../README.md)
 
-###VADER Overview
+VADER Overview
 
 In its current state, the distribution system is incapable of handling small to moderate amounts of PV penetration. This is because it was initially designed for handling passive loads which, at the level of a substation, have low variability and are forecastable with high accuracy. It has been an open loop system with little monitoring and control. With the addition of PV energy sources, the overall scenario will change dramatically due to (1) two way power flow on network and (2) high aggregate variability. Additionally, changes on the consumption side lead to a number of smart loads, Electric Vehicles (EVs) and Demand Response.
 
@@ -17,13 +17,13 @@ Much of the research work done in VADER has been published. The list below is a 
 
 * Kara et al. “Estimating Behind-the-meter Solar Generation with Existing Measurement Infrastructure (Short Paper)” , Buildsys’16 ACM International Conference on Systems for Energy-Efficient Built Environments (2016)
 * Raffi Sevlian and Ram Rajagopal, "Distribution System Topology Detection Using Consumer Load and Line Flow Measurements", IEEE Transactions on Control of Network (to be submitted)
-* Yu, Jiafan, Yang Weng, and Ram Rajagopal. "Mapping Rule Estimation for Power Flow Analysis in Distribution Grids." arXiv preprint arXiv:1702.07948(2017).
 * Yizheng Liao,  Yang Weng,  and Ram Rajagopal,  “Urban Distribution Grid Topology Reconstruction”, IEEE Power & Energy Society General Meeting, 17-21 July, 2016.
 * Yizheng Liao, Yang Weng, Chin-Woo Tan, and Ram Rajagopal, “Urban Distribution Grid Line Outage Identification”, IEEE International Conference on Probabilistic Methods Applied to Power Systems,  17-20 October, 2016.
 * Jiafan Yu, Junjie Qin, and Ram Rajagopal, “On Certainty Equivalence of Demand Charge Reduction Using Storage”, Proceedings of American Control Conference, Seattle, WA, 24-26 May, 2017.
 * Bennet Meyers and Mark Mikofski, “Accurate Modeling of Partially Shaded PV Arrays”, Proceedings of Photovoltaic Specialists Conference (PVSC-44), Washington, DC, 25-30 June, 2017.
 * Jiafan Yu, Yang Weng, and Ram Rajagopal, “Data-Driven Joint Topology and Line Parameter Estimation for Renewable Integration”, Proceedings of IEEE Power and Energy Society General Meeting, Chicago, IL, 16-20 July, 2017.
 * Jiafan Yu, Yang Weng, and Ram Rajagopal, “Robust Mapping Rule Estimation for Power Flow Analysis in Distribution Grids”, North American Power Symposium, Morgantown, WV, 17-19 September, 2017.
+* Yu, Jiafan, Yang Weng, and Ram Rajagopal. "Mapping Rule Estimation for Power Flow Analysis in Distribution Grids." arXiv preprint arXiv:1702.07948(2017).
 * Yizheng Liao,  Yang Weng, and Ram Rajagopal,  “Distributed Energy Resources Topology Identification via Graphical modeling”, IEEE Transactions on Power Systems, 2017
 * M. Malik et al. “A Common Data Architecture for Energy Data Analytics”, IEEE SmartGridComm 2018
 * Jiafan Yu, Yang Weng, and Ram Rajagopal, “PaToPa: A Data-Driven Parameter and Topology Joint Estimation Framework in Distribution Grids”, IEEE Transactions on Power Systems 2018
