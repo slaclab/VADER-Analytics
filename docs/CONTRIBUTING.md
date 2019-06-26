@@ -15,11 +15,9 @@ Improving documentation, bug triaging, or writing tutorials are all examples of 
 
 | Analytic                      | Repository URL                    |
 |-------------------------------|-----------------------------------|
-| ML-based Power Flow - Forward |                                   |
-| ML-based Power Flow - Inverse |                                   |
+| ML-based Power Flow - Forward | n/a                               |
+| ML-based Power Flow - Inverse | n/a                               |
 | Solar Disaggregation          | https://github.com/slacgismo/CSSS |
 
-### We are NOT looking for contributions in the following areas:
-*
-*
-*
+### For partnership opportunities and collaborations
+* Visit https://gismo.slac.stanford.edu/ and send us a note via our website contact form

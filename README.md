@@ -25,4 +25,4 @@ We use [SemVer](https://semver.org/) for versioning. For the versions available,
 Mayank Malik - [Github](http://github.com/malikmayank) and [LinkedIn](https://www.linkedin.com/in/malikmayank/)
 
 ### Acknowledgements
-<<< INCLUDE DOE ACKNOWLEDGEMENT STATEMENT HERE >>>
+This work is supported by U.S. Department of Energy Contract DE-AC02-76-SF00515.
