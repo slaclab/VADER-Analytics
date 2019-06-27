@@ -17,7 +17,7 @@ Much of the research work done in VADER has been published. The list below is a 
 
 * Kara et al. “Estimating Behind-the-meter Solar Generation with Existing Measurement Infrastructure (Short Paper)” , Buildsys’16 ACM International Conference on Systems for Energy-Efficient Built Environments (2016)
 * Raffi Sevlian and Ram Rajagopal, "Distribution System Topology Detection Using Consumer Load and Line Flow Measurements", IEEE Transactions on Control of Network (to be submitted)
-* Yizheng Liao,  Yang Weng,  and Ram Rajagopal,  “Urban Distribution Grid Topology Reconstruction”, IEEE Power & Energy Society General Meeting, 17-21 July, 2016.
+* Yizheng Liao,  Yang Weng,  and Ram Rajagopal,  “Urban Distribution Grid Topology Reconstruction via Lasso”, IEEE Power & Energy Society General Meeting, 17-21 July, 2016.
 * Yizheng Liao, Yang Weng, Chin-Woo Tan, and Ram Rajagopal, “Urban Distribution Grid Line Outage Identification”, IEEE International Conference on Probabilistic Methods Applied to Power Systems,  17-20 October, 2016.
 * Jiafan Yu, Junjie Qin, and Ram Rajagopal, “On Certainty Equivalence of Demand Charge Reduction Using Storage”, Proceedings of American Control Conference, Seattle, WA, 24-26 May, 2017.
 * Bennet Meyers and Mark Mikofski, “Accurate Modeling of Partially Shaded PV Arrays”, Proceedings of Photovoltaic Specialists Conference (PVSC-44), Washington, DC, 25-30 June, 2017.
