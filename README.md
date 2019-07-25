@@ -22,9 +22,9 @@ Please read [CONTRIBUTING.md](../master/docs/CONTRIBUTING.md) for details on our
 We use [SemVer](https://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/malikmayank/VADER-Analytics/tags).
 
 ### Authors
-Bennet Meyers - [Github](http://github.com/bmeyers)
-Mayank Malik - [Github](http://github.com/malikmayank) and [LinkedIn](https://www.linkedin.com/in/malikmayank/)
-Siobhan Powell - [Github](http://github.com/siobhanpowell)
+* Bennet Meyers - [Github](http://github.com/bmeyers)
+* Mayank Malik - [Github](http://github.com/malikmayank)
+* Siobhan Powell - [Github](http://github.com/siobhanpowell)
 
 ### Acknowledgements
 This work is supported by U.S. Department of Energy Contract DE-AC02-76-SF00515.
