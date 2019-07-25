@@ -23,7 +23,13 @@ We use [SemVer](https://semver.org/) for versioning. For the versions available,
 
 ### Authors
 * Bennet Meyers - [Github](http://github.com/bmeyers)
+* Davide Innocenti - [Github](http://github.com/davideinn)
+* Emre Can Kara - [Github](http://github.com/eckara)
+* Jiafan Yu - [Github](http://github.com/palmdr)
+* Jonathan Goncalves - [Github](http://github.com/jongoncalves)
 * Mayank Malik - [Github](http://github.com/malikmayank)
+* Michaelangelo Tabone - [Github](http://github.com/mtabone)
+* Serhan Kiliccote - [Github](http://github.com/serhank989)
 * Siobhan Powell - [Github](http://github.com/siobhanpowell)
 
 ### Acknowledgements
