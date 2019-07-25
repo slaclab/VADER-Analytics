@@ -1,4 +1,4 @@
-Back to [README](../README.md) > [BACKGROUND](../docs/BACKGROUND.md)
+Back to [README](../README.md) > [BACKGROUND](../docs/BACKGROUND.md) >
 
 # Solar Disaggregation
 
