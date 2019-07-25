@@ -19,7 +19,7 @@ For step-by-step installation instructions, refer to [INSTALL-GUIDE.md](../maste
 Please read [CONTRIBUTING.md](../master/docs/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
 ### Versioning
-We use [SemVer](https://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/malikmayank/VADER-Analytics/tags).
+We use [SemVer](https://semver.org/) for versioning.
 
 ### Authors
 * Bennet Meyers - [Github](http://github.com/bmeyers)
