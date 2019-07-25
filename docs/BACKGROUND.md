@@ -1,6 +1,6 @@
 Back to [README](../README.md)
 
-###VADER Overview
+### VADER Overview
 
 In its current state, the distribution system is incapable of handling small to moderate amounts of PV penetration. This is because it was initially designed for handling passive loads which, at the level of a substation, have low variability and are forecastable with high accuracy. It has been an open loop system with little monitoring and control. With the addition of PV energy sources, the overall scenario will change dramatically due to (1) two way power flow on network and (2) high aggregate variability. Additionally, changes on the consumption side lead to a number of smart loads, Electric Vehicles (EVs) and Demand Response.
 
